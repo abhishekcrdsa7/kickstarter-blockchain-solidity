@@ -8,10 +8,11 @@ class RequestRow extends Component {
   onApprove = async (event) => {
     const campaign = Campaign(this.props.address);
     const accounts = await web3.eth.getAccounts();
+    console.log(accounts);
     await campaign.methods.approveRequest(this.props.id).send({
       from: accounts[0]
     });
-  }
+  };
 
   onFinalize = async () => {
     const campaign = Campaign(this.props.address);
@@ -19,7 +20,7 @@ class RequestRow extends Component {
     await campaign.methods.finalizeRequest(this.props.id).send({
       from: accounts[0]
     })
-  }
+  };
 
   render() {
     const { Row, Cell } = Table;
