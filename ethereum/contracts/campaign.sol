@@ -28,20 +28,25 @@ contract Campaign {
         _;
     }
 
-    Request[] public requests;
-    address public manager;
-    uint public minimumContribution;
-    mapping(address => bool) public approvers;
-    uint public approversCount;
-
-    constructor(uint minimum, address creator) public {
+    function Campaign(uint minimum, address creator) public {
         manager = creator;
         minimumContribution = minimum;
     }
 
+    Request[] public requests;
+    address public manager;
+    uint public minimumContribution;
+    mapping(address => bool) public approvers;
+    address[] public apAddresses;
+    uint public approversCount;
+    bool public campaignCompleted;
+
+
+
     function contribute() public payable {
         require(msg.value > minimumContribution);
         approvers[msg.sender] = true;
+        apAddresses.push(msg.sender);
         approversCount++;
     }
 
@@ -62,7 +67,6 @@ contract Campaign {
         Request storage request = requests[index];
         require(approvers[msg.sender]);
         require(!request.approvals[msg.sender]);
-
         request.approvals[msg.sender] = true;
         request.approvalCount++;
     }
@@ -79,7 +83,20 @@ contract Campaign {
         return requests.length;
     }
 
-    function getSummary() public view returns(uint, uint, uint, uint, address){
-        return (minimumContribution, this.balance, requests.length, approversCount, manager);
+    function setCampaignCompleted() public restricted returns(bool){
+        campaignCompleted = true;
+        return campaignCompleted;
+    }
+
+    function getApproversAddressArray() public view returns (address[]) {
+        return apAddresses;
+    }
+
+    function payToContributers (uint amount, address rec) public restricted {
+      rec.transfer(amount);
+    }
+
+    function getSummary() public view returns(uint, uint, uint, uint, address, bool){
+        return (minimumContribution, this.balance, requests.length, approversCount, manager, campaignCompleted);
     }
 }
