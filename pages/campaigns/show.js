@@ -1,24 +1,37 @@
 import React, { Component } from 'react';
-import { Card, Grid, Button } from 'semantic-ui-react';
+import { Card, Grid, Button, GridColumn } from 'semantic-ui-react';
 import Layout from '../../components/Layout';
 import Campaign from '../../ethereum/campaign';
 import web3 from '../../ethereum/web3';
 import ContributeForm from '../../components/ContributeForm';
 import { Link } from '../../routes';
+import { Router } from '../../routes';
 
 class CampaignShow extends Component {
+  state = {
+    campaignCompleted: false,
+    loading: false
+  }
 
   static async getInitialProps(props){
     const campaign = Campaign(props.query.address);
     const summary = await campaign.methods.getSummary().call();
+    const accounts = await web3.eth.getAccounts();
     return {
       address: props.query.address,
       minimumContribution: summary[0],
       balance: summary[1],
       requestsCount: summary[2],
       approversCount: summary[3],
-      manager: summary[4]
+      manager: summary[4],
+      user: accounts[0],
+      campaignCompleted: summary[5],
+      campaign
     };
+  }
+
+  componentDidMount() {
+    this.setState({campaignCompleted: this.props.campaignCompleted})
   }
 
   renderCards() {
@@ -61,6 +74,14 @@ class CampaignShow extends Component {
     return <Card.Group items={items} />
   }
 
+  completeCampaign = async () => {
+    this.setState({loading: true});
+    await this.props.campaign.methods.setCampaignCompleted().send({
+      from: this.props.user
+    });
+    this.setState({campaignCompleted: true, loading: false});
+  }
+
   render() {
     return (
       <Layout>
@@ -74,13 +95,16 @@ class CampaignShow extends Component {
         </Grid.Column>
       </Grid.Row>
       <Grid.Row>
-      <Grid.Column>
+      <Grid.Column width={3}>
       <Link route={`/campaigns/${this.props.address}/requests`}>
         <Button primary>
           View Requests
         </Button>
       </Link>
       </Grid.Column>
+      {
+        this.props.user === this.props.manager && !this.state.campaignCompleted ? <Button loading={this.state.loading} onClick={this.completeCampaign} primary>Campaign Over</Button> : ""
+      }
       </Grid.Row>
       </Grid>
       </Layout>

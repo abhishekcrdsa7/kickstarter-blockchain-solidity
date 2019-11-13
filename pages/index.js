@@ -22,7 +22,7 @@ class CampaignIndex extends Component {
         ),
         fluid: true
       }
-    })
+    });
 
     return <Card.Group items={items} />;
   }
