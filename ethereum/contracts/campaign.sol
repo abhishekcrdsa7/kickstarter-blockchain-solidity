@@ -32,6 +32,7 @@ contract Campaign {
         manager = creator;
         minimumContribution = minimum;
     }
+    
 
     Request[] public requests;
     address public manager;
@@ -41,6 +42,21 @@ contract Campaign {
     uint public approversCount;
     bool public campaignCompleted;
 
+    function contribute() public payable {
+        require(msg.value > minimumContribution);
+        approvers[msg.sender] = true;
+        apAddresses.push(msg.sender);
+        approversCount++;
+    }
+
+
+    function approveRequest(uint index) public {
+        Request storage request = requests[index];
+        require(approvers[msg.sender]);
+        require(!request.approvals[msg.sender]);
+        request.approvals[msg.sender] = true;
+        request.approvalCount++;
+    }
 
     function createRequest(string description, uint  value, address recipient)
         public restricted {
